@@ -28,6 +28,9 @@ contract GRTTokenSwap {
     error OwnerCannotBeZeroAddress();
     error SenderNotAuthorized();
 
+    /// @dev Canonical and standard token addresses can't be the same
+    error TokensCannotMatch();
+
     /// @dev The token is not supported by this contract
     error InvalidToken();
 
@@ -44,6 +47,7 @@ contract GRTTokenSwap {
     // -- Functions --
 
     constructor(address _owner, IERC20 _canonicalGRT, IERC20 _standardGRT) {
+        if (_canonicalGRT == _standardGRT) revert TokensCannotMatch();
         canonicalGRT = _canonicalGRT;
         standardGRT = _standardGRT;
         _setOwner(_owner);
