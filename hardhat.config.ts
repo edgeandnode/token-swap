@@ -1,8 +1,9 @@
+import path from 'path'
+import fs from 'fs'
 import * as dotenv from 'dotenv'
 dotenv.config()
 
 import { HardhatUserConfig } from 'hardhat/types'
-import { task } from 'hardhat/config'
 
 // Plugins
 
@@ -16,6 +17,20 @@ import '@tenderly/hardhat-tenderly'
 import '@openzeppelin/hardhat-upgrades'
 import '@typechain/hardhat'
 import 'solidity-coverage'
+
+const SKIP_LOAD = process.env.SKIP_LOAD === 'true'
+
+if (!SKIP_LOAD) {
+  require('./tasks/extendContracts')
+  ;['deployment'].forEach((folder) => {
+    const tasksPath = path.join(__dirname, 'tasks', folder)
+    fs.readdirSync(tasksPath)
+      .filter((pth) => pth.includes('.ts'))
+      .forEach((task) => {
+        require(`${tasksPath}/${task}`)
+      })
+  })
+}
 
 // Networks
 
@@ -57,22 +72,13 @@ function setupDefaultNetworkProviders(buidlerConfig) {
   }
 }
 
-// Tasks
-
-task('accounts', 'Prints the list of accounts', async (taskArgs, bre) => {
-  const accounts = await bre.ethers.getSigners()
-  for (const account of accounts) {
-    console.log(await account.getAddress())
-  }
-})
-
 // Config
 
 const config: HardhatUserConfig = {
   paths: {
     sources: './contracts',
     tests: './test',
-    artifacts: './build/contracts',
+    artifacts: './build/artifacts',
   },
   solidity: {
     compilers: [
