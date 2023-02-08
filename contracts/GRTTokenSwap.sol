@@ -30,6 +30,8 @@ contract GRTTokenSwap is Ownable {
     error InvalidTokenAddress();
     /// @dev The contract does not have enough canonical GRT tokens to cover the swap
     error ContractOutOfFunds();
+    /// @dev User does not have enough allowance to cover the swap
+    error InsufficientAllowance();
 
     // -- Functions --
     /// @notice The constructor for the GRTTokenSwap contract
@@ -50,8 +52,11 @@ contract GRTTokenSwap is Ownable {
     function swap(uint256 _amount) external {
         if (_amount == 0) revert AmountMustBeGreaterThanZero();
 
-        uint256 balance = canonicalGRT.balanceOf(address(this));
-        if (_amount > balance) revert ContractOutOfFunds();
+        uint256 contractBalance = canonicalGRT.balanceOf(address(this));
+        if (_amount > contractBalance) revert ContractOutOfFunds();
+
+        uint256 userAllowance = standardGRT.allowance(msg.sender, address(this));
+        if (_amount > userAllowance) revert InsufficientAllowance();
 
         standardGRT.transferFrom(msg.sender, address(this), _amount);
         canonicalGRT.transfer(msg.sender, _amount);
