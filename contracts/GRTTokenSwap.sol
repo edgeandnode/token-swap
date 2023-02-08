@@ -72,6 +72,7 @@ contract GRTTokenSwap is Ownable {
 
     /// @notice Transfer all tokens to the contract owner
     /// @dev This is a convenience function to clean up after the contract it's deemed to be no longer necessary
+    /// @dev Reverts if either token balance is zero
     function sweep() external onlyOwner {
         (uint canonicalBalance, uint standardBalance) = getTokenBalances();
         takeCanonical(canonicalBalance);
