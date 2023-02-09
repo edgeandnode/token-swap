@@ -73,6 +73,38 @@ describe('GRT Token Swap contract', () => {
     })
   })
 
+  describe('swapAll', function () {
+    it('should swap all deprecated tokens for canonical tokens', async function () {
+      await swapAll(deprecatedToken, canonicalToken, tokenSwap, user1)
+    })
+
+    // it('should revert when token amount is zero', async function () {
+    //   // Swap it!
+    //   const swapAmount = zero
+    //   await deprecatedToken.connect(user1.signer).approve(tokenSwap.address, swapAmount)
+    //   const tx = tokenSwap.connect(user1.signer).swap(swapAmount)
+
+    //   await expect(tx).revertedWithCustomError(tokenSwap, 'AmountMustBeGreaterThanZero')
+    // })
+
+    // it('should revert if contract is out of funds', async function () {
+    //   // Swap it!
+    //   const swapAmount = hundredMillion
+    //   await deprecatedToken.connect(user1.signer).approve(tokenSwap.address, swapAmount)
+    //   const tx = tokenSwap.connect(user1.signer).swap(swapAmount)
+
+    //   await expect(tx).revertedWithCustomError(tokenSwap, 'ContractOutOfFunds')
+    // })
+
+    // it('should revert if user has no deprecated tokens allowance', async function () {
+    //   // Swap it!
+    //   const swapAmount = oneHundred
+    //   const tx = tokenSwap.connect(user3.signer).swap(swapAmount)
+
+    //   await expect(tx).revertedWith('ERC20: insufficient allowance')
+    // })
+  })
+
   describe('swap', function () {
     it('should swap deprecated tokens for canonical tokens', async function () {
       await swap(deprecatedToken, canonicalToken, tokenSwap, user1, oneHundred)
@@ -164,6 +196,23 @@ describe('GRT Token Swap contract', () => {
     })
   })
 })
+
+async function swapAll(deprecatedToken: Token, canonicalToken: Token, tokenSwap: GRTTokenSwap, user: Account) {
+  // State before
+  const userDeprecatedBalanceBefore = await deprecatedToken.balanceOf(user.address)
+  const userCanonicalBalanceBefore = await canonicalToken.balanceOf(user.address)
+
+  // Approve and swap
+  await deprecatedToken.connect(user.signer).approve(tokenSwap.address, userDeprecatedBalanceBefore)
+  await swap(deprecatedToken, canonicalToken, tokenSwap, user, userDeprecatedBalanceBefore)
+
+  // State after
+  const userDeprecatedBalanceAfter = await deprecatedToken.balanceOf(user.address)
+  const userCanonicalBalanceAfter = await canonicalToken.balanceOf(user.address)
+
+  expect(userDeprecatedBalanceAfter).eq(zero)
+  expect(userCanonicalBalanceAfter).eq(userCanonicalBalanceBefore.add(userDeprecatedBalanceBefore))
+}
 
 async function swap(
   deprecatedToken: Token,

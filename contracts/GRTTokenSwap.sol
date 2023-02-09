@@ -42,10 +42,17 @@ contract GRTTokenSwap is Ownable {
         deprecatedGRT = _deprecatedGRT;
     }
 
+    /// @notice Swap the entire balance of the sender's deprecated GRT for canonical GRT
+    /// @dev Ensure approve(type(uint256).max) or approve(senderBalance) is called on the deprecated GRT contract before calling this function
+    function swapAll() external {
+        uint256 balance = deprecatedGRT.balanceOf(msg.sender);
+        swap(balance);
+    }
+
     /// @notice Swap deprecated GRT for canonical GRT
     /// @dev Ensure approve(_amount) is called on the deprecated GRT contract before calling this function
     /// @param _amount Amount of tokens to swap
-    function swap(uint256 _amount) external {
+    function swap(uint256 _amount) public {
         if (_amount == 0) revert AmountMustBeGreaterThanZero();
 
         uint256 contractBalance = canonicalGRT.balanceOf(address(this));
@@ -62,7 +69,7 @@ contract GRTTokenSwap is Ownable {
     /// @dev This is a convenience function to clean up after the contract it's deemed to be no longer necessary
     /// @dev Reverts if either token balance is zero
     function sweep() external onlyOwner {
-        (uint canonicalBalance, uint deprecatedBalance) = getTokenBalances();
+        (uint256 canonicalBalance, uint256 deprecatedBalance) = getTokenBalances();
         takeCanonical(canonicalBalance);
         takeDeprecated(deprecatedBalance);
     }
@@ -90,10 +97,11 @@ contract GRTTokenSwap is Ownable {
     /// @param _token The token to take
     /// @param _amount The amount of tokens to take
     function _take(IERC20 _token, uint256 _amount) private {
+        address owner = owner();
         if (_amount > 0) {
-            _token.transfer(owner(), _amount);
+            _token.transfer(owner, _amount);
         }
 
-        emit TokensTaken(msg.sender, address(_token), _amount);
+        emit TokensTaken(owner, address(_token), _amount);
     }
 }
