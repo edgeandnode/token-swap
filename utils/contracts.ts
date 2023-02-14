@@ -18,7 +18,6 @@ export const getContractAt = (
 
 export const loadContracts = (
   swapAddress: string | undefined,
-  tokenAddress: string | undefined,
   signerOrProvider?: Signer | providers.Provider,
 ): SwapContracts => {
   const contracts = {}
@@ -28,13 +27,6 @@ export const loadContracts = (
       contracts['GRTTokenSwap'] = grtTokenSwap
       if (signerOrProvider) {
         contracts['GRTTokenSwap'] = contracts['GRTTokenSwap'].connect(signerOrProvider)
-      }
-    }
-    if (tokenAddress) {
-      const token = getContractAt('Token', tokenAddress)
-      contracts['Token'] = token
-      if (signerOrProvider) {
-        contracts['Token'] = contracts['Token'].connect(signerOrProvider)
       }
     }
   } catch (err) {

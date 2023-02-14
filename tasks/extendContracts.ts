@@ -15,6 +15,6 @@ extendEnvironment((hre: HardhatRuntimeEnvironment) => {
   const chainId = hre.network.config.chainId
   const addressBook = addresses[chainId as number]
   hre['contracts'] = lazyObject(() => {
-    return loadContracts(addressBook?.GRTTokenSwap, addressBook?.Token, hre.ethers.provider)
+    return loadContracts(addressBook?.GRTTokenSwap, hre.ethers.provider)
   })
 })

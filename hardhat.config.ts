@@ -22,7 +22,7 @@ const SKIP_LOAD = process.env.SKIP_LOAD === 'true'
 
 if (!SKIP_LOAD) {
   require('./tasks/extendContracts')
-  ;['deployment'].forEach((folder) => {
+  ;['./'].forEach((folder) => {
     const tasksPath = path.join(__dirname, 'tasks', folder)
     fs.readdirSync(tasksPath)
       .filter((pth) => pth.includes('.ts'))
@@ -37,37 +37,45 @@ if (!SKIP_LOAD) {
 interface NetworkConfig {
   network: string
   chainId: number
+  url?: string
   gas?: number | 'auto'
   gasPrice?: number | 'auto'
 }
 
 const networkConfigs: NetworkConfig[] = [
-  { network: 'goerli', chainId: 5 },
-  { network: 'sepolia', chainId: 11155111 },
-  { network: 'mainnet', chainId: 1 },
-  { network: 'ropsten', chainId: 3 },
-  { network: 'rinkeby', chainId: 4 },
-  { network: 'kovan', chainId: 42 },
+  {
+    network: 'arbitrum-one',
+    chainId: 42161,
+    url: 'https://arb1.arbitrum.io/rpc',
+  },
+  {
+    network: 'arbitrum-goerli',
+    chainId: 421613,
+    url: 'https://goerli-rollup.arbitrum.io/rpc',
+  },
 ]
 
-function getAccountMnemonic() {
-  return process.env.MNEMONIC || ''
+function getAccountsKeys() {
+  if (process.env.MNEMONIC) return { mnemonic: process.env.MNEMONIC }
+  if (process.env.PRIVATE_KEY) return [process.env.PRIVATE_KEY]
+  return 'remote'
 }
 
-function getDefaultProviderURL(network: string) {
+function getProviderURL(network: string) {
   return `https://${network}.infura.io/v3/${process.env.INFURA_KEY}`
 }
 
-function setupDefaultNetworkProviders(buidlerConfig) {
+function setupNetworkConfig(config: HardhatUserConfig) {
+  if (config.networks == null) {
+    config.networks = {}
+  }
   for (const netConfig of networkConfigs) {
-    buidlerConfig.networks[netConfig.network] = {
+    config.networks[netConfig.network] = {
       chainId: netConfig.chainId,
-      url: getDefaultProviderURL(netConfig.network),
-      gas: netConfig.gasPrice || 'auto',
+      url: netConfig.url ? netConfig.url : getProviderURL(netConfig.network),
+      gas: netConfig.gas || 'auto',
       gasPrice: netConfig.gasPrice || 'auto',
-      accounts: {
-        mnemonic: getAccountMnemonic(),
-      },
+      accounts: getAccountsKeys(),
     }
   }
 }
@@ -110,7 +118,7 @@ const config: HardhatUserConfig = {
         mnemonic: 'myth like bonus scare over problem client lizard pioneer submit female collect',
       },
     },
-    ganache: {
+    localhost: {
       chainId: 1337,
       url: 'http://localhost:8545',
     },
@@ -144,6 +152,6 @@ const config: HardhatUserConfig = {
   },
 }
 
-setupDefaultNetworkProviders(config)
+setupNetworkConfig(config)
 
 export default config
