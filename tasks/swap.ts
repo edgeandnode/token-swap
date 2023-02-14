@@ -1,6 +1,6 @@
 import { ethers, Wallet } from 'ethers'
 import { task } from 'hardhat/config'
-import { Token } from '../build/types'
+import { GRTTokenSwap, Token } from '../build/types'
 import { getContractAt } from '../utils/contracts'
 import { SUPPORTED_CHAINS } from './chains'
 import inquirer from 'inquirer'
@@ -20,7 +20,7 @@ task('swap', 'Swap deprecated GRT tokens for the cannonical GRT tokens in Arbitr
     // Get contracts
     console.log('\nGetting contracts...')
 
-    const tokenSwap = hre.contracts.GRTTokenSwap
+    const tokenSwap = hre.contracts.GRTTokenSwap as GRTTokenSwap
     if (tokenSwap === undefined) {
       throw new Error('Token swap contract not found')
     }
@@ -29,9 +29,6 @@ task('swap', 'Swap deprecated GRT tokens for the cannonical GRT tokens in Arbitr
     // Get the GRT addresses for the chain
     const canonicalGRTAddress = await tokenSwap.canonicalGRT()
     const deprecatedGRTAddress = await tokenSwap.deprecatedGRT()
-    console.log(`> Canonical GRT: ${canonicalGRTAddress}`)
-    console.log(`> Deprecated GRT: ${deprecatedGRTAddress}`)
-
     const deprecatedGRT = getContractAt('Token', deprecatedGRTAddress) as Token
     const canonicalGRT = getContractAt('Token', canonicalGRTAddress) as Token
 
@@ -55,16 +52,26 @@ task('swap', 'Swap deprecated GRT tokens for the cannonical GRT tokens in Arbitr
     let canonicalBalance = await canonicalGRT.connect(accounts[0]).balanceOf(accounts[0].address)
 
     console.log(`\nCurrent balances:`)
-    console.log(`> Deprecated GRT: ${deprecatedBalance.toNumber()} GRT`)
-    console.log(`> Canonical GRT: ${canonicalBalance.toNumber()} GRT`)
+    console.log(`> ETH balance: ${ethers.utils.formatEther(await accounts[0].getBalance())} ETH`)
+    console.log(`> Deprecated GRT: ${ethers.utils.formatEther(deprecatedBalance)} GRT`)
+    console.log(`> Canonical GRT: ${ethers.utils.formatEther(canonicalBalance)} GRT`)
 
     const swapIt = await confirm('Are you sure you want to continue?')
 
     // Swap it!
     if (swapIt) {
+      console.log(`Approving swap contract to pull deprecated GRT...`)
       await deprecatedGRT.connect(accounts[0]).approve(tokenSwap.address, ethers.constants.MaxUint256)
-      await tokenSwap.connect(accounts[0]).swapAll()
+
+      console.log(`Swapping tokens...`)
+      const tx = await tokenSwap.connect(accounts[0]).swapAll({ gasLimit: 8_000_000 })
+      const receipt = await tx.wait()
+      console.log(`Transaction hash: ${receipt.transactionHash}`)
+      console.log(`Transaction status: ${receipt.status ? 'Success' : 'Failure'}`)
+
+      console.log(`Setting deprecated GRT allowance to zero...`)
       await deprecatedGRT.connect(accounts[0]).approve(tokenSwap.address, ethers.constants.Zero)
+
       console.log('Swap complete!')
 
       // Get new balances
@@ -72,8 +79,8 @@ task('swap', 'Swap deprecated GRT tokens for the cannonical GRT tokens in Arbitr
       canonicalBalance = await canonicalGRT.connect(accounts[0]).balanceOf(accounts[0].address)
 
       console.log(`\nNew balances:`)
-      console.log(`> Deprecated GRT: ${deprecatedBalance.toNumber()} GRT`)
-      console.log(`> Canonical GRT: ${canonicalBalance.toNumber()} GRT`)
+      console.log(`> Deprecated GRT: ${ethers.utils.formatEther(deprecatedBalance)} GRT`)
+      console.log(`> Canonical GRT: ${ethers.utils.formatEther(canonicalBalance)} GRT`)
     }
   },
 )
