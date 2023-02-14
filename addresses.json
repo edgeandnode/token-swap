@@ -1,7 +1,11 @@
 {
   "1337": {
-    "GRTTokenSwap": "0xDb56f2e9369E0D7bD191099125a3f6C370F8ed15",
+    "GRTTokenSwap": "0xDb56f2e9369E0D7bD191099125a3f6C370F8ed15"
   },
-  "42161": {},
-  "421613": {}
+  "42161": {
+    "GRTTokenSwap": ""
+  },
+  "421613": {
+    "GRTTokenSwap": "0xdc36a5648963dFe95C88e7f3313C8dB28E9DAFee"
+  }
 }

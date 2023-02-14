@@ -46,7 +46,7 @@ The script will swap **ALL** of your deprecated GRT tokens for the canonical one
 Deploy with:
 
 ```bash
-hh deploy --network <NETWORK_NAME> --canonicalToken <TOKEN_ADDRESS> --deprecatedToken <DEPRECATED_TOKEN_ADDRESS>
+hh deploy --network <NETWORK_NAME> --canonical-token <TOKEN_ADDRESS> --deprecated-token <DEPRECATED_TOKEN_ADDRESS>
 ```
 
 - `NETWORK_NAME` can be one of `arbitrum-one`, `arbitrum-goerli` or `localhost`.

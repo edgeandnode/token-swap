@@ -78,7 +78,7 @@ task('swap', 'Swap deprecated GRT tokens for the cannonical GRT tokens in Arbitr
   },
 )
 
-const confirm = async (message: string): Promise<boolean> => {
+export const confirm = async (message: string): Promise<boolean> => {
   const res = await inquirer.prompt({
     name: 'confirm',
     type: 'confirm',
