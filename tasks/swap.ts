@@ -51,11 +51,12 @@ task('swap', 'Swap deprecated GRT tokens for the cannonical GRT tokens in Arbitr
     console.log(`\nTarget account address: ${accounts[0].address}`)
 
     // Get the balance of the deprecated GRT
-    const deprecatedBalance = await deprecatedGRT.connect(accounts[0]).balanceOf(accounts[0].address)
-    const canonicalBalance = await canonicalGRT.connect(accounts[0]).balanceOf(accounts[0].address)
+    let deprecatedBalance = await deprecatedGRT.connect(accounts[0]).balanceOf(accounts[0].address)
+    let canonicalBalance = await canonicalGRT.connect(accounts[0]).balanceOf(accounts[0].address)
 
-    console.log(`> Balance (deprecated GRT): ${deprecatedBalance.toNumber()} GRT`)
-    console.log(`> Balance (canonical GRT): ${canonicalBalance.toNumber()} GRT`)
+    console.log(`\nCurrent balances:`)
+    console.log(`> Deprecated GRT: ${deprecatedBalance.toNumber()} GRT`)
+    console.log(`> Canonical GRT: ${canonicalBalance.toNumber()} GRT`)
 
     const swapIt = await confirm('Are you sure you want to continue?')
 
@@ -65,6 +66,14 @@ task('swap', 'Swap deprecated GRT tokens for the cannonical GRT tokens in Arbitr
       await tokenSwap.connect(accounts[0]).swapAll()
       await deprecatedGRT.connect(accounts[0]).approve(tokenSwap.address, ethers.constants.Zero)
       console.log('Swap complete!')
+
+      // Get new balances
+      deprecatedBalance = await deprecatedGRT.connect(accounts[0]).balanceOf(accounts[0].address)
+      canonicalBalance = await canonicalGRT.connect(accounts[0]).balanceOf(accounts[0].address)
+
+      console.log(`\nNew balances:`)
+      console.log(`> Deprecated GRT: ${deprecatedBalance.toNumber()} GRT`)
+      console.log(`> Canonical GRT: ${canonicalBalance.toNumber()} GRT`)
     }
   },
 )
