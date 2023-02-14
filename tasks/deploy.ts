@@ -27,10 +27,7 @@ task('deploy', 'Deploy the GRT token swap contract (use L2 network!)')
     let canonicalGRT: Token
     if (chainId === '1337') {
       deprecatedGRT = await deployToken([BigNumber.from('10000000000')], accounts[0], false)
-      addresses[chainId]['DeprecatedGRT'] = deprecatedGRT.address
-
       canonicalGRT = await deployToken([BigNumber.from('10000000000')], accounts[0], false)
-      addresses[chainId]['CanonicalGRT'] = canonicalGRT.address
     } else {
       if (taskArgs.deprecatedToken === undefined || taskArgs.canonicalToken === undefined) {
         throw new Error('Token addresses not provided. Use --canonicalToken and --deprecatedToken.')
